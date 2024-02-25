@@ -32,34 +32,34 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
 
 // Webhook ---------------
 // This is your Stripe CLI webhook secret for testing your endpoint locally.
-// const endpointSecret = process.env.WEBHOOK_SECRET;
- 
-// server.post('/webhook', express.raw({type: 'application/json'}), (request, response) => {
-//   const sig = request.headers['stripe-signature'];
+const endpointSecret = process.env.WEBHOOK_SECRET;
 
-//   let event;
+server.post('/webhook', express.raw({ type: 'application/json' }), (request, response) => {
+  const sig = request.headers['stripe-signature'];
 
-//   try {
-//     event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
-//   } catch (err) {
-//     response.status(400).send(`Webhook Error: ${err.message}`);
-//     return;
-//   }
+  let event;
 
-//   // Handle the event
-//   switch (event.type) {
-//     case 'payment_intent.succeeded':
-//       const paymentIntentSucceeded = event.data.object;
-//       // Then define and call a function to handle the event payment_intent.succeeded
-//       break;
-//     // ... handle other event types
-//     default:
-//       console.log(`Unhandled event type ${event.type}`);
-//   }
+  try {
+    event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+  } catch (err) {
+    response.status(400).send(`Webhook Error: ${err.message}`);
+    return;
+  }
 
-//   // Return a 200 response to acknowledge receipt of the event
-//   response.send();
-// });
+  // Handle the event
+  switch (event.type) {
+    case 'payment_intent.succeeded':
+      const paymentIntentSucceeded = event.data.object;
+      // Then define and call a function to handle the event payment_intent.succeeded
+      break;
+    // ... handle other event types
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  // Return a 200 response to acknowledge receipt of the event
+  response.send();
+});
 
 const opts = {};
 opts.jwtFromRequest = cookieExtractor;
@@ -67,7 +67,7 @@ opts.secretOrKey = process.env.JWT_SECRET_KEY; // TODO: should not be in code;
 
 //middlewares
 
-server.use(express.static(path.resolve(__dirname,'build')))
+server.use(express.static(path.resolve(__dirname, 'build')))
 server.use(cookieParser());
 server.use(
   session({
@@ -96,7 +96,7 @@ server.use('/auth', authRouter.router);
 server.use('/cart', isAuth(), cartRouter.router);
 server.use('/orders', isAuth(), ordersRouter.router);
 // If above path doesn't match----------
-server.get("*",(req,res)=> {res.sendFile(path.resolve("build","index.html"))})
+server.get("*", (req, res) => { res.sendFile(path.resolve("build", "index.html")) })
 
 // Passport Strategies
 passport.use(
@@ -176,12 +176,12 @@ passport.deserializeUser(function (user, cb) {
 // };
 
 server.post("/create-payment-intent", async (req, res) => {
-  const { totalAmount,orderId } = req.body;
-  console.log('payment items',totalAmount)
+  const { totalAmount, orderId } = req.body;
+  console.log('payment items', totalAmount)
 
   // Create a PaymentIntent with the order amount and currency
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: totalAmount*100,
+    amount: totalAmount * 100,
     currency: "usd",
     description: 'Your transaction description here',
     shipping: {
@@ -195,10 +195,10 @@ server.post("/create-payment-intent", async (req, res) => {
         country: 'US',
       },
     },
-    metadata:{
-
+    metadata: {
+      orderId
     },
-    payment_method:"pm_card_visa",
+    payment_method: "pm_card_visa",
     // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
     automatic_payment_methods: {
       enabled: true,

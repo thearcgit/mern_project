@@ -95,6 +95,8 @@ server.use('/users', isAuth(), usersRouter.router);
 server.use('/auth', authRouter.router);
 server.use('/cart', isAuth(), cartRouter.router);
 server.use('/orders', isAuth(), ordersRouter.router);
+// If above path doesn't match----------
+server.get("*",(req,res)=> {res.sendFile(path.resolve("build","index.html"))})
 
 // Passport Strategies
 passport.use(
@@ -174,7 +176,7 @@ passport.deserializeUser(function (user, cb) {
 // };
 
 server.post("/create-payment-intent", async (req, res) => {
-  const { totalAmount } = req.body;
+  const { totalAmount,orderId } = req.body;
   console.log('payment items',totalAmount)
 
   // Create a PaymentIntent with the order amount and currency
@@ -192,6 +194,9 @@ server.post("/create-payment-intent", async (req, res) => {
         postal_code: 'Postal Code',
         country: 'US',
       },
+    },
+    metadata:{
+
     },
     payment_method:"pm_card_visa",
     // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.

@@ -199,7 +199,6 @@ server.post("/create-payment-intent", async (req, res) => {
       enabled: true,
     },
   });
-  console.log('intent',paymentIntent)
 
   res.send({
     clientSecret: paymentIntent.client_secret,
